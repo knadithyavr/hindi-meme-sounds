@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:telugumemesounds.com)",
+      "WebSearch",
+      "Bash(npx create-next-app@latest:*)"
+    ]
+  }
+}
