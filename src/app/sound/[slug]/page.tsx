@@ -92,6 +92,10 @@ export default async function SoundPage({ params }: Props) {
               <p className="text-3xl font-bold text-primary">{formatCount(sound.download_count)}</p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider mt-0.5">Downloads</p>
             </div>
+            <div>
+              <p className="text-3xl font-bold text-primary">{formatCount(sound.share_count)}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-0.5">Shares</p>
+            </div>
           </div>
 
           {sound.description && (

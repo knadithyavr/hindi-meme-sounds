@@ -11,7 +11,7 @@ async function getSoundsAdmin() {
   const db = adminDb
   const { data } = await db
     .from('sounds')
-    .select('id, title, slug, play_count, download_count, is_published, created_at')
+    .select('id, title, slug, play_count, download_count, share_count, is_published, created_at')
     .order('created_at', { ascending: false })
   return data ?? []
 }
@@ -35,6 +35,7 @@ export default async function AdminSoundsPage() {
               <TableHead>Title</TableHead>
               <TableHead className="text-right">Plays</TableHead>
               <TableHead className="text-right">Downloads</TableHead>
+              <TableHead className="text-right">Shares</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -45,6 +46,7 @@ export default async function AdminSoundsPage() {
                 <TableCell className="font-medium max-w-[200px] truncate">{sound.title}</TableCell>
                 <TableCell className="text-right tabular-nums">{formatCount(sound.play_count)}</TableCell>
                 <TableCell className="text-right tabular-nums">{formatCount(sound.download_count)}</TableCell>
+                <TableCell className="text-right tabular-nums">{formatCount(sound.share_count)}</TableCell>
                 <TableCell>
                   <Badge variant={sound.is_published ? 'default' : 'secondary'}>
                     {sound.is_published ? 'Published' : 'Hidden'}

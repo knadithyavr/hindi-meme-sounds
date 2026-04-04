@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db, adminDb } from '@/lib/supabase'
+import { db } from '@/lib/supabase'
 import { rateLimit } from '@/lib/rate-limit'
 
 export async function GET(
@@ -26,8 +26,6 @@ export async function GET(
 
   const r2Response = await fetch(sound.audio_url)
   if (!r2Response.ok) return new NextResponse('File unavailable', { status: 502 })
-
-  void adminDb.rpc('increment_download_count', { sound_id: sound.id })
 
   return new NextResponse(r2Response.body, {
     headers: {

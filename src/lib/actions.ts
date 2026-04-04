@@ -173,12 +173,24 @@ export async function searchSounds(query: string, page = 1): Promise<PaginatedRe
   const from = (page - 1) * PAGE_LIMIT
   const to = from + PAGE_LIMIT - 1
 
+  // Sanitize and convert to prefix-aware tsquery: "jame" → "jame:*"
+  // Strip special chars that would break to_tsquery, then build prefix terms
+  const tsQuery = query.trim()
+    .replace(/[^a-zA-Z0-9\u0900-\u097F\s]/g, '') // keep latin, devanagari, spaces
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(w => `${w}:*`)
+    .join(' & ')
+
+  if (!tsQuery || query.trim().length < 3) return { data: [], total: 0, page, limit: PAGE_LIMIT, hasMore: false }
+
   // Lean count query (no joins — avoids nested join count inflation)
   const { count } = await db
     .from('sounds')
     .select('*', { count: 'exact', head: true })
     .eq('is_published', true)
-    .textSearch('search_vector', query, { type: 'websearch' })
+    .filter('search_vector', 'fts', tsQuery)
 
   // Data query with full joins
   const { data, error } = await db
@@ -189,7 +201,7 @@ export async function searchSounds(query: string, page = 1): Promise<PaginatedRe
       tags:sound_tags(tag:tags(*))
     `)
     .eq('is_published', true)
-    .textSearch('search_vector', query, { type: 'websearch' })
+    .filter('search_vector', 'fts', tsQuery)
     .range(from, to)
 
   if (error) throw new Error(error.message)
@@ -237,6 +249,10 @@ export async function trackPlay(soundId: string): Promise<void> {
 
 export async function trackDownload(soundId: string): Promise<void> {
   await adminDb.rpc('increment_download_count', { sound_id: soundId })
+}
+
+export async function trackShare(soundId: string): Promise<void> {
+  await adminDb.rpc('increment_share_count', { sound_id: soundId })
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

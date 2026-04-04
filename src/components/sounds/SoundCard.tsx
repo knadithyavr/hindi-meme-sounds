@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Play, Pause, Download, Share2 } from 'lucide-react'
 import { useAudio } from './AudioProvider'
+import { trackDownload, trackShare } from '@/lib/actions'
 import { Sound } from '@/types'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -20,6 +21,7 @@ export function SoundCard({ sound, index = 0 }: SoundCardProps) {
     const a = document.createElement('a')
     a.href = `/api/download/${sound.slug}`
     a.click()
+    trackDownload(sound.id)
   }
 
   async function handleShare() {
@@ -32,6 +34,7 @@ export function SoundCard({ sound, index = 0 }: SoundCardProps) {
         const file = new File([blob], `${sound.slug}.mp3`, { type: 'audio/mpeg' })
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], title: sound.title })
+          trackShare(sound.id)
           return
         }
       } catch {
@@ -42,6 +45,7 @@ export function SoundCard({ sound, index = 0 }: SoundCardProps) {
     if (navigator.share) {
       try {
         await navigator.share({ title: sound.title, url: soundUrl })
+        trackShare(sound.id)
         return
       } catch {
         // fall through
@@ -58,7 +62,7 @@ export function SoundCard({ sound, index = 0 }: SoundCardProps) {
 
   return (
     <div
-      className="group flex items-center gap-3 px-3 py-2.5 rounded-lg bg-card border border-border hover:border-primary/25 transition-colors animate-fade-in-up"
+      className="group flex items-center gap-3 px-4 py-3 rounded-lg bg-card border border-border hover:border-primary/25 transition-colors animate-fade-in-up"
       style={{ animationDelay: `${index * 25}ms` }}
     >
       {/* Play / Pause */}
@@ -81,7 +85,7 @@ export function SoundCard({ sound, index = 0 }: SoundCardProps) {
       {/* Title + tags */}
       <div className="flex-1 min-w-0">
         <Link href={`/sound/${sound.slug}`} className="block">
-          <p className="font-medium text-sm text-foreground truncate hover:text-primary transition-colors">
+          <p className="font-medium text-base text-foreground truncate hover:text-primary transition-colors">
             {sound.title}
           </p>
         </Link>

@@ -9,17 +9,17 @@ import { AudioProvider } from '@/components/sounds/AudioProvider'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Hindi Meme Sounds',
+    default: 'Hindi Meme Sounds - हिंदी Meme Studio',
     template: '%s | Hindi Meme Sounds',
   },
-  description: 'Play and download the best Hindi meme sounds. Browse by category, search by tags.',
-  keywords: ['hindi meme sounds', 'hindi memes', 'bollywood meme sounds', 'funny hindi audio'],
-  authors: [{ name: 'Hindi Meme Sounds' }],
+  description: 'Play and download Hindi meme sounds, dialogues and audio clips. For reels, edits and WhatsApp forwards.',
+  keywords: ['hindi meme sounds', 'hindi meme audio', 'bollywood dialogues', 'hindi meme clips', 'funny hindi audio', 'meme sounds india'],
+  authors: [{ name: 'हिंदी Meme Studio' }],
   openGraph: {
     type: 'website',
-    siteName: 'Hindi Meme Sounds',
-    title: 'Hindi Meme Sounds',
-    description: 'Play and download the best Hindi meme sounds.',
+    siteName: 'हिंदी Meme Studio',
+    title: 'Hindi Meme Sounds - हिंदी Meme Studio',
+    description: 'Play and download Hindi meme sounds, dialogues and audio clips.',
   },
   twitter: { card: 'summary_large_image' },
 }

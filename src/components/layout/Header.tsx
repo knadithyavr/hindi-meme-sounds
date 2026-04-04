@@ -22,7 +22,7 @@ export function Header() {
         {/* Wordmark */}
         <Link href="/" className="flex items-center gap-1 leading-none select-none">
           <span className="font-bold text-lg text-primary tracking-tight">हिंदी</span>
-          <span className="font-bold text-lg text-foreground tracking-tight">&nbsp;Meme Sounds</span>
+          <span className="font-bold text-lg text-foreground tracking-tight">&nbsp;Meme Studio</span>
         </Link>
 
         {/* Desktop nav */}

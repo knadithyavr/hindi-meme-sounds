@@ -22,6 +22,7 @@ export interface Sound {
   audio_url: string
   play_count: number
   download_count: number
+  share_count: number
   is_published: boolean
   // future user upload fields (not exposed in UI yet)
   is_user_upload: boolean

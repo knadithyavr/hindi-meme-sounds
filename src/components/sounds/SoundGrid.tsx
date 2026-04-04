@@ -44,8 +44,8 @@ export function SoundGrid({ initialSounds, hasMore: initialHasMore, loadMore }: 
   }
 
   return (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+    <div className="h-auto md:h-[70vh] md:overflow-y-auto rounded-lg md:pr-1 md:scrollbar-thin">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {sounds.map((sound, i) => (
           <SoundCard key={sound.id} sound={sound} index={i} />
         ))}
@@ -64,7 +64,7 @@ export function SoundGrid({ initialSounds, hasMore: initialHasMore, loadMore }: 
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }
 

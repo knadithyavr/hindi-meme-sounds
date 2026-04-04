@@ -2,6 +2,7 @@
 
 import { Play, Pause, Download, Share2 } from 'lucide-react'
 import { useAudio } from './AudioProvider'
+import { trackDownload, trackShare } from '@/lib/actions'
 import { Sound } from '@/types'
 import { toast } from 'sonner'
 
@@ -13,6 +14,7 @@ export function SoundHero({ sound }: { sound: Sound }) {
     const a = document.createElement('a')
     a.href = `/api/download/${sound.slug}`
     a.click()
+    trackDownload(sound.id)
   }
 
   async function handleShare() {
@@ -25,6 +27,7 @@ export function SoundHero({ sound }: { sound: Sound }) {
         const file = new File([blob], `${sound.slug}.mp3`, { type: 'audio/mpeg' })
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], title: sound.title })
+          trackShare(sound.id)
           return
         }
       } catch {
@@ -35,6 +38,7 @@ export function SoundHero({ sound }: { sound: Sound }) {
     if (navigator.share) {
       try {
         await navigator.share({ title: sound.title, url: soundUrl })
+        trackShare(sound.id)
         return
       } catch {
         // fall through
