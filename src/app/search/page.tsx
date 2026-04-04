@@ -4,7 +4,7 @@ import { SoundGrid } from '@/components/sounds/SoundGrid'
 import { SearchBar } from '@/components/sounds/SearchBar'
 import type { Metadata } from 'next'
 
-interface Props { searchParams: Promise<{ q?: string }> }
+interface Props { searchParams: Promise<{ q?: string; lang?: string }> }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { q } = await searchParams
@@ -12,23 +12,24 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function SearchPage({ searchParams }: Props) {
-  const { q } = await searchParams
+  const { q, lang } = await searchParams
   const query = q?.trim() ?? ''
+  const languageId = lang ?? undefined
 
   const { data: sounds, hasMore, total } = query
-    ? await searchSounds(query, 1)
+    ? await searchSounds(query, 1, languageId)
     : { data: [], hasMore: false, total: 0 }
 
   async function loadMore(page: number) {
     'use server'
-    const result = await searchSounds(query, page)
+    const result = await searchSounds(query, page, languageId)
     return { sounds: result.data, hasMore: result.hasMore }
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <Suspense><SearchBar /></Suspense>
+        <Suspense><SearchBar languageId={languageId} /></Suspense>
       </div>
 
       {query && (
@@ -38,7 +39,7 @@ export default async function SearchPage({ searchParams }: Props) {
       )}
 
       {query
-        ? <SoundGrid key={query} initialSounds={sounds} hasMore={hasMore} loadMore={loadMore} />
+        ? <SoundGrid key={`${query}-${languageId}`} initialSounds={sounds} hasMore={hasMore} loadMore={loadMore} />
         : <p className="text-center text-muted-foreground py-16">Type something to search</p>
       }
     </div>

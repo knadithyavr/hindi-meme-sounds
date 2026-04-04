@@ -6,6 +6,17 @@ import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
+// Maps language slug → script name for dynamic wordmark
+// Update this when adding new languages
+const LANGUAGE_SCRIPTS: Record<string, string> = {
+  hindi:   'हिंदी',
+  telugu:  'తెలుగు',
+  tamil:   'தமிழ்',
+  bengali: 'বাংলা',
+  marathi: 'मराठी',
+  kannada: 'ಕನ್ನಡ',
+}
+
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/trending', label: 'Trending' },
@@ -16,13 +27,23 @@ export function Header() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
 
+  // Derive script name from path: "/hindi" → "हिंदी", anything else → null
+  const langSlug = pathname.split('/')[1]
+  const scriptName = LANGUAGE_SCRIPTS[langSlug] ?? null
+
   return (
     <header className="sticky top-0 z-50 bg-background/90 backdrop-blur border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         {/* Wordmark */}
         <Link href="/" className="flex items-center gap-1 leading-none select-none">
-          <span className="font-bold text-lg text-primary tracking-tight">हिंदी</span>
-          <span className="font-bold text-lg text-foreground tracking-tight">&nbsp;Meme Studio</span>
+          {scriptName ? (
+            <>
+              <span className="font-bold text-lg text-primary tracking-tight">{scriptName}</span>
+              <span className="font-bold text-lg text-foreground tracking-tight">&nbsp;Meme Studio</span>
+            </>
+          ) : (
+            <span className="font-bold text-lg text-foreground tracking-tight">The Meme Studio</span>
+          )}
         </Link>
 
         {/* Desktop nav */}

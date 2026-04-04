@@ -1,3 +1,13 @@
+export interface Language {
+  id: string
+  name: string
+  slug: string
+  script_name: string
+  is_active: boolean
+  sound_count?: number
+  created_at: string
+}
+
 export interface Category {
   id: string
   name: string
@@ -18,6 +28,8 @@ export interface Sound {
   id: string
   title: string
   slug: string
+  language_id: string
+  language_slug: string
   description: string | null
   audio_url: string
   play_count: number

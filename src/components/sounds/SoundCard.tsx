@@ -25,7 +25,7 @@ export function SoundCard({ sound, index = 0 }: SoundCardProps) {
   }
 
   async function handleShare() {
-    const soundUrl = `${window.location.origin}/sound/${sound.slug}`
+    const soundUrl = `${window.location.origin}/${sound.language_slug}/sound/${sound.slug}`
 
     if (navigator.canShare) {
       try {
@@ -84,7 +84,7 @@ export function SoundCard({ sound, index = 0 }: SoundCardProps) {
 
       {/* Title + tags */}
       <div className="flex-1 min-w-0">
-        <Link href={`/sound/${sound.slug}`} className="block">
+        <Link href={`/${sound.language_slug}/sound/${sound.slug}`} className="block">
           <p className="font-medium text-base text-foreground truncate hover:text-primary transition-colors">
             {sound.title}
           </p>

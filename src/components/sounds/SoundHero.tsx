@@ -18,7 +18,7 @@ export function SoundHero({ sound }: { sound: Sound }) {
   }
 
   async function handleShare() {
-    const soundUrl = `${window.location.origin}/sound/${sound.slug}`
+    const soundUrl = `${window.location.origin}/${sound.language_slug}/sound/${sound.slug}`
 
     if (navigator.canShare) {
       try {

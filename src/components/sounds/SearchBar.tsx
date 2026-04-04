@@ -6,7 +6,7 @@ import { Search } from 'lucide-react'
 
 const MIN_CHARS = 3
 
-export function SearchBar() {
+export function SearchBar({ languageId }: { languageId?: string }) {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') ?? ''
   const [isPending, startTransition] = useTransition()
@@ -19,8 +19,10 @@ export function SearchBar() {
     e.preventDefault()
     const q = value.trim()
     if (q.length < MIN_CHARS) return
+    const params = new URLSearchParams({ q })
+    if (languageId) params.set('lang', languageId)
     startTransition(() => {
-      router.push(`/search?q=${encodeURIComponent(q)}`)
+      router.push(`/search?${params.toString()}`)
     })
   }
 

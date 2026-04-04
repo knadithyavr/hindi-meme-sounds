@@ -1,24 +1,30 @@
 'use server'
 
 import { db, adminDb } from './supabase'
-import { Sound, Category, Tag, PaginatedResponse } from '@/types'
+import { Sound, Category, Tag, Language, PaginatedResponse } from '@/types'
 
 const PAGE_LIMIT = 24
 
 // ─── Sounds ──────────────────────────────────────────────────────────────────
 
-export async function getSounds(page = 1): Promise<PaginatedResponse<Sound>> {
+export async function getSounds(page = 1, languageId?: string): Promise<PaginatedResponse<Sound>> {
   const from = (page - 1) * PAGE_LIMIT
   const to = from + PAGE_LIMIT - 1
 
-  const { data, error, count } = await db
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query: any = db
     .from('sounds')
     .select(`
       *,
+      language:languages(slug),
       categories:sound_categories(category:categories(*)),
       tags:sound_tags(tag:tags(*))
     `, { count: 'exact' })
     .eq('is_published', true)
+
+  if (languageId) query = query.eq('language_id', languageId)
+
+  const { data, error, count } = await query
     .order('created_at', { ascending: false })
     .range(from, to)
 
@@ -33,18 +39,24 @@ export async function getSounds(page = 1): Promise<PaginatedResponse<Sound>> {
   }
 }
 
-export async function getTrendingSounds(page = 1): Promise<PaginatedResponse<Sound>> {
+export async function getTrendingSounds(page = 1, languageId?: string): Promise<PaginatedResponse<Sound>> {
   const from = (page - 1) * PAGE_LIMIT
   const to = from + PAGE_LIMIT - 1
 
-  const { data, error, count } = await db
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query: any = db
     .from('sounds')
     .select(`
       *,
+      language:languages(slug),
       categories:sound_categories(category:categories(*)),
       tags:sound_tags(tag:tags(*))
     `, { count: 'exact' })
     .eq('is_published', true)
+
+  if (languageId) query = query.eq('language_id', languageId)
+
+  const { data, error, count } = await query
     .order('play_count', { ascending: false })
     .range(from, to)
 
@@ -86,6 +98,7 @@ export async function getSoundsByCategory(categorySlug: string, page = 1): Promi
     .from('sounds')
     .select(`
       *,
+      language:languages(slug),
       categories:sound_categories(category:categories(*)),
       tags:sound_tags(tag:tags(*))
     `, { count: 'exact' })
@@ -121,6 +134,7 @@ export async function getRelatedSounds(categoryId: string, excludeId: string): P
     .from('sounds')
     .select(`
       *,
+      language:languages(slug),
       categories:sound_categories(category:categories(*)),
       tags:sound_tags(tag:tags(*))
     `)
@@ -138,6 +152,7 @@ export async function getTrendingSoundsExcluding(excludeIds: string[], limit: nu
     .from('sounds')
     .select(`
       *,
+      language:languages(slug),
       categories:sound_categories(category:categories(*)),
       tags:sound_tags(tag:tags(*))
     `)
@@ -153,15 +168,39 @@ export async function getTrendingSoundsExcluding(excludeIds: string[], limit: nu
   return normalizeSounds(data ?? [])
 }
 
+// Used only for backward-compat redirect at /sound/[slug]
 export async function getSoundBySlug(slug: string): Promise<Sound | null> {
   const { data, error } = await db
     .from('sounds')
     .select(`
       *,
+      language:languages(slug),
       categories:sound_categories(category:categories(*)),
       tags:sound_tags(tag:tags(*))
     `)
     .eq('slug', slug)
+    .eq('is_published', true)
+    .limit(1)
+    .single()
+
+  if (error || !data) return null
+  return normalizeSounds([data])[0]
+}
+
+export async function getSoundBySlugAndLang(slug: string, languageSlug: string): Promise<Sound | null> {
+  const language = await getLanguageBySlug(languageSlug)
+  if (!language) return null
+
+  const { data, error } = await db
+    .from('sounds')
+    .select(`
+      *,
+      language:languages(slug),
+      categories:sound_categories(category:categories(*)),
+      tags:sound_tags(tag:tags(*))
+    `)
+    .eq('slug', slug)
+    .eq('language_id', language.id)
     .eq('is_published', true)
     .single()
 
@@ -169,7 +208,7 @@ export async function getSoundBySlug(slug: string): Promise<Sound | null> {
   return normalizeSounds([data])[0]
 }
 
-export async function searchSounds(query: string, page = 1): Promise<PaginatedResponse<Sound>> {
+export async function searchSounds(query: string, page = 1, languageId?: string): Promise<PaginatedResponse<Sound>> {
   const from = (page - 1) * PAGE_LIMIT
   const to = from + PAGE_LIMIT - 1
 
@@ -185,24 +224,32 @@ export async function searchSounds(query: string, page = 1): Promise<PaginatedRe
 
   if (!tsQuery || query.trim().length < 3) return { data: [], total: 0, page, limit: PAGE_LIMIT, hasMore: false }
 
-  // Lean count query (no joins — avoids nested join count inflation)
-  const { count } = await db
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let countQuery: any = db
     .from('sounds')
     .select('*', { count: 'exact', head: true })
     .eq('is_published', true)
     .filter('search_vector', 'fts', tsQuery)
 
-  // Data query with full joins
-  const { data, error } = await db
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let dataQuery: any = db
     .from('sounds')
     .select(`
       *,
+      language:languages(slug),
       categories:sound_categories(category:categories(*)),
       tags:sound_tags(tag:tags(*))
     `)
     .eq('is_published', true)
     .filter('search_vector', 'fts', tsQuery)
-    .range(from, to)
+
+  if (languageId) {
+    countQuery = countQuery.eq('language_id', languageId)
+    dataQuery = dataQuery.eq('language_id', languageId)
+  }
+
+  const { count } = await countQuery
+  const { data, error } = await dataQuery.range(from, to)
 
   if (error) throw new Error(error.message)
 
@@ -213,6 +260,44 @@ export async function searchSounds(query: string, page = 1): Promise<PaginatedRe
     limit: PAGE_LIMIT,
     hasMore: (count ?? 0) > to + 1,
   }
+}
+
+// ─── Languages ───────────────────────────────────────────────────────────────
+
+export async function getLanguages(): Promise<Language[]> {
+  const { data: languages } = await db
+    .from('languages')
+    .select('*')
+    .eq('is_active', true)
+    .order('name')
+
+  if (!languages?.length) return []
+
+  const counts = await Promise.all(
+    languages.map(lang =>
+      db.from('sounds')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_published', true)
+        .eq('language_id', lang.id)
+    )
+  )
+
+  return languages.map((lang, i) => ({
+    ...lang,
+    sound_count: counts[i].count ?? 0,
+  }))
+}
+
+export async function getLanguageBySlug(slug: string): Promise<Language | null> {
+  const { data, error } = await db
+    .from('languages')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .single()
+
+  if (error || !data) return null
+  return data
 }
 
 // ─── Categories ──────────────────────────────────────────────────────────────
@@ -261,6 +346,7 @@ export async function trackShare(soundId: string): Promise<void> {
 function normalizeSounds(data: any[]): Sound[] {
   return data.map(s => ({
     ...s,
+    language_slug: s.language?.slug ?? '',
     categories: (s.categories ?? []).map((c: { category: Category }) => c.category).filter(Boolean),
     tags: (s.tags ?? []).map((t: { tag: Tag }) => t.tag).filter(Boolean),
   }))
