@@ -27,7 +27,7 @@ export function SoundCard({ sound, index = 0 }: SoundCardProps) {
 
     if (navigator.canShare) {
       try {
-        const res = await fetch(sound.audio_url)
+        const res = await fetch(`/api/download/${sound.slug}`)
         const blob = await res.blob()
         const file = new File([blob], `${sound.slug}.mp3`, { type: 'audio/mpeg' })
         if (navigator.canShare({ files: [file] })) {
